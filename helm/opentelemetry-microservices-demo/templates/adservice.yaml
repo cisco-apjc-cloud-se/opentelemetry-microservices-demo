@@ -1,0 +1,83 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adservice
+  labels:
+    framework: java
+    app: adservice
+    tier: adservice
+    app.kubernetes.io/part-of: online-boutique
+    app.kubernetes.io/component: adservice
+spec:
+  selector:
+    matchLabels:
+      app: adservice
+      tier: adservice
+  template:
+    metadata:
+      labels:
+        app: adservice
+        tier: adservice
+        version: v1
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: server
+        image: {{ .Values.adservice.server.image.name }}:{{ .Values.adservice.server.image.tag }}
+        ports:
+        - containerPort: 9555
+        env:
+        - name: PORT
+          value: "9555"
+        - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+          value: {{ .Values.adservice.server.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT }} # "http://otelcollector:4317"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: {{ .Values.adservice.server.env.OTEL_RESOURCE_ATTRIBUTES }} # "service.name=adservice,service.version=1.0.0"
+        resources:
+          requests:
+            cpu: {{ .Values.adservice.server.requests.cpu }} # 400m
+            memory: {{ .Values.adservice.server.requests.cpu }} # 360Mi
+          limits:
+            cpu: {{ .Values.adservice.server.limits.cpu }} # 600m
+            memory: {{ .Values.adservice.server.limits.memory }} # 600Mi
+        readinessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:9555"]
+        livenessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:9555"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adservice
+  labels:
+    app: adservice
+    tier: adservice
+spec:
+  type: {{ .Values.adservice.service.type }} # ClusterIP
+  selector:
+    tier: adservice
+  ports:
+  - name: grpc
+    port: {{ .Values.adservice.service.grpc.port }} # 9555
+    targetPort: {{ .Values.adservice.service.grpc.targetPort }} # 9555

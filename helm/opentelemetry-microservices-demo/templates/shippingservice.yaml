@@ -1,0 +1,79 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shippingservice
+  labels:
+    framework: go
+    app: shippingservice
+    tier: shippingservice
+    app.kubernetes.io/part-of: online-boutique
+    app.kubernetes.io/component: shippingservice
+spec:
+  selector:
+    matchLabels:
+      app: shippingservice
+      tier: shippingservice
+  template:
+    metadata:
+      labels:
+        app: shippingservice
+        tier: shippingservice
+        version: v1
+    spec:
+      serviceAccountName: default
+      containers:
+      - name: server
+        image: shippingservice
+        ports:
+        - containerPort: 50051
+        env:
+        - name: PORT
+          value: "50051"
+        - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+          value: {{ .Values.shippingservice.server.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT }} # "http://otelcollector:4317"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: {{ .Values.shippingservice.server.env.OTEL_RESOURCE_ATTRIBUTES }} # "service.name=shippingservice,service.version=1.0.0"
+        readinessProbe:
+          periodSeconds: 5
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:50051"]
+        livenessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:50051"]
+        resources:
+          requests:
+            cpu: {{ .Values.shippingservice.server.requests.cpu }} # 100m
+            memory: {{ .Values.shippingservice.server.requests.memory }} # 64Mi
+          limits:
+            cpu: {{ .Values.shippingservice.server.limits.cpu }} # 200m
+            memory: {{ .Values.shippingservice.server.limits.memory }} # 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shippingservice
+  labels:
+    app: shippingservice
+    tier: shippingservice
+spec:
+  type: {{ .Values.shippingservice.service.type }} # ClusterIP
+  selector:
+    tier: shippingservice
+  ports:
+  - name: grpc
+    port: {{ .Values.shippingservice.service.grpc.port }} # 50051
+    targetPort: {{ .Values.shippingservice.service.grpc.targetPort }} # 50051

@@ -1,0 +1,126 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    framework: go
+    app: frontend
+    tier: frontend
+    app.kubernetes.io/part-of: online-boutique
+    app.kubernetes.io/component: frontend
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: frontend
+        version: v1
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      serviceAccountName: default
+      containers:
+        - name: server
+          image: {{ .Values.frontend.server.image.name }}:{{ .Values.frontend.server.image.tag }}
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+              - name: "Cookie"
+                value: "shop_session-id=x-readiness-probe"
+          livenessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+              - name: "Cookie"
+                value: "shop_session-id=x-liveness-probe"
+          env:
+          - name: PORT
+            value: "8080"
+          - name: PRODUCT_CATALOG_SERVICE_ADDR
+            value: {{ .Values.frontend.server.env.PRODUCT_CATALOG_SERVICE_ADDR }} # "productcatalogservice:3550"
+          - name: CURRENCY_SERVICE_ADDR
+            value: {{ .Values.frontend.server.env.CURRENCY_SERVICE_ADDR }} # "currencyservice:7000"
+          - name: CART_SERVICE_ADDR
+            value: {{ .Values.frontend.server.env.CART_SERVICE_ADDR }} # "cartservice:7070"
+          - name: RECOMMENDATION_SERVICE_ADDR
+            value: {{ .Values.frontend.server.env.RECOMMENDATION_SERVICE_ADDR }} # "recommendationservice:8080"
+          - name: SHIPPING_SERVICE_ADDR
+            value: {{ .Values.frontend.server.env.SHIPPING_SERVICE_ADDR }} # "shippingservice:50051"
+          - name: CHECKOUT_SERVICE_ADDR
+            value: {{ .Values.frontend.server.env.CHECKOUT_SERVICE_ADDR }} # "checkoutservice:5050"
+          - name: AD_SERVICE_ADDR
+            value: {{ .Values.frontend.server.env.AD_SERVICE_ADDR }} # "adservice:9555"
+          - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+            value: {{ .Values.frontend.server.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT }} # "http://otelcollector:4317"
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: {{ .Values.frontend.server.env.OTEL_RESOURCE_ATTRIBUTES }} # "service.name=frontend,service.version=1.0.0"
+          # # ENV_PLATFORM: One of: local, gcp, aws, azure, onprem, alibaba
+          # # When not set, defaults to "local" unless running in GKE, otherwies auto-sets to gcp
+          - name: ENV_PLATFORM
+            value: {{ .Values.frontend.server.env.ENV_PLATFORM }} # "aws"
+          - name: CYMBAL_BRANDING
+            value: {{ .Values.frontend.server.env.CYMBAL_BRANDING }} # "true" disabled
+          resources:
+            requests:
+              cpu: {{ .Values.frontend.server.requests.cpu }} # 100m
+              memory: {{ .Values.frontend.server.requests.memory }} # 64Mi
+            limits:
+              cpu: {{ .Values.frontend.server.limits.cpu }} # 200m
+              memory: {{ .Values.frontend.server.limits.memory }} # 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+    tier: frontend
+spec:
+  type: {{ .Values.frontend.service.type }} # ClusterIP
+  selector:
+    tier: frontend
+  ports:
+  - name: http
+    port: {{ .Values.frontend.service.http.port }} # 80
+    targetPort: {{ .Values.frontend.service.http.targetPort }} # 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-external
+  labels:
+    app: frontend-external
+    tier: frontend
+spec:
+  type: {{ .Values.frontendexternal.service.type }} # NodePort
+  selector:
+    tier: frontend
+  ports:
+  - name: http
+    port: {{ .Values.frontendexternal.service.http.port }} # 80
+    targetPort: {{ .Values.frontendexternal.service.http.targetPort }} # 8080

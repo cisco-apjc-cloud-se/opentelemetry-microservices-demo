@@ -1,0 +1,82 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cartservice
+  labels:
+    framework: "c#"
+    app: cartservice
+    tier: cartservice
+    app.kubernetes.io/part-of: online-boutique
+    app.kubernetes.io/component: cartservice
+spec:
+  selector:
+    matchLabels:
+      app: cartservice
+      tier: cartservice
+  template:
+    metadata:
+      labels:
+        app: cartservice
+        tier: cartservice
+        version: v1
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: server
+        image: {{ .Values.cartservice.server.image.name }}:{{ .Values.cartservice.server.image.tag }}
+        ports:
+        - containerPort: 7070
+        env:
+        - name: REDIS_ADDR
+          value: {{ .Values.cartservice.server.env.REDIS_ADDR }} # "redis-cart:6379"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: {{ .Values.cartservice.server.env.OTEL_EXPORTER_OTLP_ENDPOINT }} # "http://otelcollector:4317"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: {{ .Values.cartservice.server.env.OTEL_RESOURCE_ATTRIBUTES }} # "service.name=cartservice,service.version=1.0.0"
+        resources:
+          requests:
+            cpu: {{ .Values.cartservice.server.requests.cpu }} # 200m
+            memory: {{ .Values.cartservice.server.requests.memory }} # 64Mi
+          limits:
+            cpu: {{ .Values.cartservice.server.limits.cpu }} # 300m
+            memory: {{ .Values.cartservice.server.limits.memory }} # 128Mi
+        readinessProbe:
+          initialDelaySeconds: 15
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:7070", "-rpc-timeout=5s"]
+        livenessProbe:
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:7070", "-rpc-timeout=5s"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cartservice
+  labels:
+    app: cartservice
+    tier: cartservice
+spec:
+  type: {{ .Values.cartservice.service.type }} # ClusterIP
+  selector:
+    tier: cartservice
+  ports:
+  - name: grpc
+    port: {{ .Values.cartservice.service.grpc.port }} # 7070
+    targetPort: {{ .Values.cartservice.service.grpc.targetPort }} # 7070

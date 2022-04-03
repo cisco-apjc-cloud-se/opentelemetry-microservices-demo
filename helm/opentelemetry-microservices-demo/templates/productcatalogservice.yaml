@@ -1,0 +1,79 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productcatalogservice
+  labels:
+    framework: go
+    app: productcatalogservice
+    tier: productcatalogservice
+    app.kubernetes.io/part-of: online-boutique
+    app.kubernetes.io/component: productcatalogservice
+spec:
+  selector:
+    matchLabels:
+      app: productcatalogservice
+      tier: productcatalogservice
+  template:
+    metadata:
+      labels:
+        app: productcatalogservice
+        tier: productcatalogservice
+        version: v1
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: server
+        image: {{ .Values.productcatalogservice.server.image.name }}:{{ .Values.productcatalogservice.server.image.tag }}
+        ports:
+        - containerPort: 3550
+        env:
+        - name: PORT
+          value: "3550"
+        - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+          value: {{ .Values.productcatalogservice.server.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT }} # "http://otelcollector:4317"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: {{ .Values.productcatalogservice.server.env.OTEL_RESOURCE_ATTRIBUTES }} # "service.name=productcatalogservice,service.version=1.0.0"
+        readinessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:3550"]
+        livenessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:3550"]
+        resources:
+          requests:
+            cpu: {{ .Values.productcatalogservice.server.requests.cpu }} # 100m
+            memory: {{ .Values.productcatalogservice.server.requests.memory }} # 64Mi
+          limits:
+            cpu: {{ .Values.productcatalogservice.server.limits.cpu }} # 200m
+            memory: {{ .Values.productcatalogservice.server.limits.memory }} # 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productcatalogservice
+  labels:
+    app: productcatalogservice
+    tier: productcatalogservice
+spec:
+  type: {{ .Values.productcatalogservice.service.type }} # ClusterIP
+  selector:
+    tier: productcatalogservice
+  ports:
+  - name: grpc
+    port: {{ .Values.productcatalogservice.service.grpc.port }} # 3550
+    targetPort: {{ .Values.productcatalogservice.service.grpc.targetPort }} # 3550

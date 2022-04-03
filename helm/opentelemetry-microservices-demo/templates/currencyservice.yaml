@@ -1,0 +1,80 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: currencyservice
+  labels:
+    framework: node.js
+    app: currencyservice
+    tier: currencyservice
+    app.kubernetes.io/part-of: online-boutique
+    app.kubernetes.io/component: currencyservice
+spec:
+  selector:
+    matchLabels:
+      app: currencyservice
+      tier: currencyservice
+  template:
+    metadata:
+      labels:
+        app: currencyservice
+        tier: currencyservice
+        version: v1
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: server
+        image: {{ .Values.currencyservice.server.image.name }}:{{ .Values.currencyservice.server.image.tag }}
+        ports:
+        - name: grpc
+          containerPort: 7000
+        env:
+        - name: PORT
+          value: "7000"
+        - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+          value: {{ .Values.currencyservice.server.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT }} # "http://otelcollector:4317"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: {{ .Values.currencyservice.server.env.OTEL_RESOURCE_ATTRIBUTES }} # "service.name=currencyservice,service.version=1.0.0"
+        readinessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:7000"]
+        livenessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:7000"]
+        resources:
+          requests:
+            cpu: {{ .Values.currencyservice.server.requests.cpu }} # 100m
+            memory: {{ .Values.currencyservice.server.requests.memory }} # 64Mi
+          limits:
+            cpu: {{ .Values.currencyservice.server.limits.cpu }} # 200m
+            memory: {{ .Values.currencyservice.server.limits.memory }} # 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: currencyservice
+  labels:
+    app: currencyservice
+    tier: currencyservice
+spec:
+  type: {{ .Values.currencyservice.service.type }} # ClusterIP
+  selector:
+    tier: currencyservice
+  ports:
+  - name: grpc
+    port: {{ .Values.currencyservice.service.grpc.port }} # 7000
+    targetPort: {{ .Values.currencyservice.service.grpc.targetPort }} # 7000
