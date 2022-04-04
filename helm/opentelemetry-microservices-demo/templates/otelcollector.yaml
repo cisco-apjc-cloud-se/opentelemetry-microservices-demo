@@ -22,35 +22,35 @@ spec:
       serviceAccountName: default
       terminationGracePeriodSeconds: 5
       containers:
-      - name: otelcollector
-        image: {{ .Values.otelcollector.server.image.name }}:{{ .Values.otelcollector.server.image.tag }} # otelcollector
-        env:
-        - name: APPD_ENDPOINT
-          value: {{ .Values.otelcollector.server.env.APPD_ENDPOINT }}
-        - name: APPD_KEY
-          value: {{ .Values.otelcollector.server.env.APPD_KEY }}
-        - name: APPD_CONTROLLER_ACCOUNT
-          value: {{ .Values.otelcollector.server.env.APPD_CONTROLLER_ACCOUNT }}
-        - name: APPD_CONTROLLER_HOST
-          value: {{ .Values.otelcollector.server.env.APPD_CONTROLLER_HOST }}
-        - name: APPD_CONTROLLER_PORT
-          value: {{ .Values.otelcollector.server.env.APPD_CONTROLLER_PORT }}
-        - name: SERVICE_NAMESPACE
-          value: {{ .Values.otelcollector.server.env.SERVICE_NAMESPACE }}
-        ports:
-        - containerPort: 1888
-        - containerPort: 8888
-        - containerPort: 8889
-        - containerPort: 13133
-        - containerPort: 4317
-        - containerPort: 55670
-        resources:
-          requests:
-            cpu: 200m
-            memory: 180Mi
-          limits:
-            cpu: 300m
-            memory: 300Mi
+        - name: otelcollector
+          image: {{ .Values.otelcollector.server.image.name }}:{{ .Values.otelcollector.server.image.tag }} # otelcollector
+          env:
+            - name: APPD_ENDPOINT
+              value: {{ .Values.otelcollector.server.env.APPD_ENDPOINT }}
+            - name: APPD_KEY
+              value: {{ .Values.otelcollector.server.env.APPD_KEY }}
+            - name: APPD_CONTROLLER_ACCOUNT
+              value: {{ .Values.otelcollector.server.env.APPD_CONTROLLER_ACCOUNT }}
+            - name: APPD_CONTROLLER_HOST
+              value: {{ .Values.otelcollector.server.env.APPD_CONTROLLER_HOST }}
+            - name: APPD_CONTROLLER_PORT
+              value: {{ .Values.otelcollector.server.env.APPD_CONTROLLER_PORT }}
+            - name: SERVICE_NAMESPACE
+              value: {{ .Values.otelcollector.server.env.SERVICE_NAMESPACE }}
+          ports:
+            - containerPort: 1888
+            - containerPort: 8888
+            - containerPort: 8889
+            - containerPort: 13133
+            - containerPort: 4317
+            - containerPort: 55670
+          resources:
+            requests:
+              cpu: 200m
+              memory: 180Mi
+            limits:
+              cpu: 300m
+              memory: 300Mi
 ---
 apiVersion: v1
 kind: Service
@@ -64,21 +64,27 @@ spec:
   selector:
     tier: otelcollector
   ports:
-  - name: "1888"
-    port: {{ .Values.otelcollector.service.p1888.port }} # 1888
-    targetPort: {{ .Values.otelcollector.service.p1888.targetPort }} # 1888
-  - name: "8888"
-    port: {{ .Values.otelcollector.service.p8888.port }} # 8888
-    targetPort: {{ .Values.otelcollector.service.p8888.targetPort }} # 8888
-  - name: "8889"
-    port: {{ .Values.otelcollector.service.p8889.port }} # 8889
-    targetPort: {{ .Values.otelcollector.service.p8889.targetPort }} # 8889
-  - name: "13133"
-    port: {{ .Values.otelcollector.service.p13133.port }} # 13133
-    targetPort: {{ .Values.otelcollector.service.p13133.targetPort }} # 13133
-  - name: "4317"
-    port: {{ .Values.otelcollector.service.p4317.port }} # 4317
-    targetPort: {{ .Values.otelcollector.service.p4317.targetPort }} # 4317
-  - name: "55670"
-    port: {{ .Values.otelcollector.service.p55670.port }} # 55670
-    targetPort: {{ .Values.otelcollector.service.p55670.targetPort }} # 55670
+    - name: "1888"
+      appProtocol: tcp
+      port: {{ .Values.otelcollector.service.p1888.port }} # 1888
+      targetPort: {{ .Values.otelcollector.service.p1888.targetPort }} # 1888
+    - name: "8888"
+      appProtocol: tcp
+      port: {{ .Values.otelcollector.service.p8888.port }} # 8888
+      targetPort: {{ .Values.otelcollector.service.p8888.targetPort }} # 8888
+    - name: "8889"
+      appProtocol: tcp
+      port: {{ .Values.otelcollector.service.p8889.port }} # 8889
+      targetPort: {{ .Values.otelcollector.service.p8889.targetPort }} # 8889
+    - name: "13133"
+      appProtocol: tcp
+      port: {{ .Values.otelcollector.service.p13133.port }} # 13133
+      targetPort: {{ .Values.otelcollector.service.p13133.targetPort }} # 13133
+    - name: "4317"
+      appProtocol: tcp
+      port: {{ .Values.otelcollector.service.p4317.port }} # 4317
+      targetPort: {{ .Values.otelcollector.service.p4317.targetPort }} # 4317
+    - name: "55670"
+      appProtocol: tcp
+      port: {{ .Values.otelcollector.service.p55670.port }} # 55670
+      targetPort: {{ .Values.otelcollector.service.p55670.targetPort }} # 55670
