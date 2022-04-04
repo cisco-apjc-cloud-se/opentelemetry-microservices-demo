@@ -44,9 +44,9 @@ spec:
             limits:
               cpu: {{ .Values.redis.server.limits.cpu }} # 125m
               memory: {{ .Values.redis.server.limits.memory }} # 256Mi
-          volumes:
-            - name: redis-data
-              emptyDir: {}
+      volumes:
+        - name: redis-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
