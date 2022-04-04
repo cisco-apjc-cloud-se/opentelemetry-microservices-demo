@@ -24,6 +24,19 @@ spec:
       containers:
       - name: otelcollector
         image: {{ .Values.otelcollector.server.image.name }}:{{ .Values.otelcollector.server.image.tag }} # otelcollector
+        env:
+        - name: APPD_ENDPOINT
+          value: {{ .Values.otelcollector.server.env.APPD_ENDPOINT }}
+        - name: APPD_KEY
+          value: {{ .Values.otelcollector.server.env.APPD_KEY }}
+        - name: APPD_CONTROLLER_ACCOUNT
+          value: {{ .Values.otelcollector.server.env.APPD_CONTROLLER_ACCOUNT }}
+        - name: APPD_CONTROLLER_HOST
+          value: {{ .Values.otelcollector.server.env.APPD_CONTROLLER_HOST }}
+        - name: APPD_CONTROLLER_PORT
+          value: {{ .Values.otelcollector.server.env.APPD_CONTROLLER_PORT }}
+        - name: SERVICE_NAMESPACE
+          value: {{ .Values.otelcollector.server.env.SERVICE_NAMESPACE }}
         ports:
         - containerPort: 1888
         - containerPort: 8888

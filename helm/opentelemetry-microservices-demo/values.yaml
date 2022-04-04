@@ -233,6 +233,13 @@ otelcollector:
     limits:
       cpu: 300m
       memory: 300Mi
+    env:
+      APPD_ENDPOINT: "https://pdx-sls-agent-api.saas.appdynamics.com/"
+      APPD_KEY: ""
+      APPD_CONTROLLER_ACCOUNT: ""
+      APPD_CONTROLLER_HOST: ""
+      APPD_CONTROLLER_PORT: 443
+      SERVICE_NAMESPACE: ""
   service:
     type: ClusterIP # ClusterIP, NodePort, LoadBalancer
     p1888:

@@ -11,10 +11,31 @@ exporters:
       insecure: true
   logging:
     loglevel: debug
+  otlphttp:
+    endpoint: "${APPD_ENDPOINT}"
+    headers: {"x-api-key": "${APPD_KEY}"}
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: []
-      exporters: [logging,jaeger]
+      processors: [resource,batch]
+      exporters: [otlphttp,logging,jaeger]
+
+processors:
+  batch:
+    timeout: 30s
+    send_batch_size: 90
+  resource:
+    attributes:
+  	- key: appdynamics.controller.account
+      action: upsert
+      value: "${APPD_CONTROLLER_ACCOUNT}"
+  	- key: appdynamics.controller.host
+      action: upsert
+      value: "${APPD_CONTROLLER_HOST}"
+  	- key: appdynamics.controller.port
+      action: upsert
+      value: "${APPD_CONTROLLER_PORT}"
+  	- key: service.namespace
+      value: "${SERVICE_NAMESPACE}"
