@@ -41,3 +41,4 @@ processors:
       -
         key: service.namespace
         value: "${SERVICE_NAMESPACE}"
+        action: upsert
