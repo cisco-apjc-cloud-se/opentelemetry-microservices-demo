@@ -136,7 +136,7 @@ frontend:
       # ENV_PLATFORM: One of: local, gcp, aws, azure, onprem, alibaba
       # When not set, defaults to "local" unless running in GKE, otherwies auto-sets to gcp
       ENV_PLATFORM: "local"
-      CYMBAL_BRANDING: false # disabled
+      CYMBAL_BRANDING: "false" # disabled
   service:
     type: ClusterIP # ClusterIP, NodePort, LoadBalancer
     http:
@@ -219,7 +219,7 @@ loadgenerator:
       memory: 512Mi
     env:
       FRONTEND_ADDR: "frontend:80"
-      USERS: 10
+      USERS: "10"
 
 otelcollector:
   replicas: 1
@@ -238,7 +238,7 @@ otelcollector:
       APPD_KEY: ""
       APPD_CONTROLLER_ACCOUNT: ""
       APPD_CONTROLLER_HOST: ""
-      APPD_CONTROLLER_PORT: 443
+      APPD_CONTROLLER_PORT: "443"
       SERVICE_NAMESPACE: ""
   service:
     type: ClusterIP # ClusterIP, NodePort, LoadBalancer
