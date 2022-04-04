@@ -1,9 +1,9 @@
+---
 receivers:
   otlp:
     protocols:
       grpc:
       http:
-
 exporters:
   jaeger:
     endpoint: "jaeger:14250"
@@ -14,28 +14,30 @@ exporters:
   otlphttp:
     endpoint: "${APPD_ENDPOINT}"
     headers: {"x-api-key": "${APPD_KEY}"}
-
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [resource,batch]
-      exporters: [otlphttp,logging,jaeger]
-
+      processors: [resource, batch]
+      exporters: [otlphttp, logging, jaeger]
 processors:
   batch:
     timeout: 30s
     send_batch_size: 90
   resource:
     attributes:
-      - key: appdynamics.controller.account
+      -
+        key: appdynamics.controller.account
         action: upsert
         value: "${APPD_CONTROLLER_ACCOUNT}"
-  	  - key: appdynamics.controller.host
+      -
+        key: appdynamics.controller.host
         action: upsert
         value: "${APPD_CONTROLLER_HOST}"
-  	  - key: appdynamics.controller.port
+      -
+        key: appdynamics.controller.port
         action: upsert
         value: "${APPD_CONTROLLER_PORT}"
-  	  - key: service.namespace
+      -
+        key: service.namespace
         value: "${SERVICE_NAMESPACE}"
