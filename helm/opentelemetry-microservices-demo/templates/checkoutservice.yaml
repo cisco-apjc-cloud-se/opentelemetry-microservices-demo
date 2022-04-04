@@ -86,5 +86,5 @@ spec:
     tier: checkoutservice
   ports:
   - name: grpc
-    port: {{ .Values.cartservice.service.grpc.port }} # 5050
-    targetPort: {{ .Values.cartservice.service.grpc.targetPort }} # 5050
+    port: {{ .Values.checkoutservice.service.grpc.port }} # 5050
+    targetPort: {{ .Values.checkoutservice.service.grpc.targetPort }} # 5050
