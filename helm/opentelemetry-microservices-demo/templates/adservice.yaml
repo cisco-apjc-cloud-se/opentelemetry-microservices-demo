@@ -43,12 +43,12 @@ spec:
             cpu: {{ .Values.adservice.server.limits.cpu }} # 600m
             memory: {{ .Values.adservice.server.limits.memory }} # 600Mi
         readinessProbe:
-          initialDelaySeconds: 60
+          initialDelaySeconds: 120
           periodSeconds: 15
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:9555"]
         livenessProbe:
-          initialDelaySeconds: 60
+          initialDelaySeconds: 120
           periodSeconds: 15
           exec:
             command: ["/bin/grpc_health_probe", "-addr=:9555"]
