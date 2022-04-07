@@ -37,7 +37,7 @@ processors:
       -
         key: appdynamics.controller.port
         action: upsert
-        value: ${APPD_CONTROLLER_PORT}
+        value: 443
       -
         key: service.namespace
         value: "${SERVICE_NAMESPACE}"
