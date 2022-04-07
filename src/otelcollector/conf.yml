@@ -23,7 +23,7 @@ service:
 processors:
   batch:
     timeout: 30s
-    send_batch_size: 90
+    send_batch_size: 8192
   resource:
     attributes:
       -
