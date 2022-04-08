@@ -17,7 +17,8 @@ kind: Deployment
 metadata:
   name: cartservice
   labels:
-    framework: csharp
+    framework: dotn
+    
     app: cartservice
     tier: cartservice
     app.kubernetes.io/part-of: online-boutique

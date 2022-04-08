@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: paymentservice
   labels:
-    framework: node.js
+    framework: nodejs
     app: paymentservice
     tier: paymentservice
     app.kubernetes.io/part-of: online-boutique

@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: currencyservice
   labels:
-    framework: node.js
+    framework: nodejs
     app: currencyservice
     tier: currencyservice
     app.kubernetes.io/part-of: online-boutique
