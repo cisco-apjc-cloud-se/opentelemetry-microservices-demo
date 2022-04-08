@@ -282,27 +282,6 @@ paymentservice:
       port: 50051 ## External Port for LoadBalancer/NodePort
       targetPort: 50051
 
-paymentservice:
-  replicas: 1
-  server:
-    image:
-      name: public.ecr.aws/j8r8c0y6/otel-online-boutique/paymentservice # gcr.io/google-samples/microservices-demo/paymentservice
-      tag: v0.1.0
-    requests:
-      cpu: 100m
-      memory: 64Mi
-    limits:
-      cpu: 200m
-      memory: 128Mi
-    env:
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://otelcollector:4317"
-      OTEL_RESOURCE_ATTRIBUTES: "service.namespace=online-boutique,service.name=paymentservice,service.version=1.0.0"
-  service:
-    type: ClusterIP # ClusterIP, NodePort, LoadBalancer
-    grpc:
-      port: 50051 ## External Port for LoadBalancer/NodePort
-      targetPort: 50051
-
 productcatalogservice:
   replicas: 1
   server:
